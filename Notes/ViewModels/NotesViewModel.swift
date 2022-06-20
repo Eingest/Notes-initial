@@ -15,6 +15,12 @@ class NotesViewModel: ObservableObject {
         try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
     }
     
+    private var notesFile: URL {
+        documentDirectory
+            .appendingPathComponent("notes")
+            .appendingPathExtension(for : .json)
+    }
+    
     /// Creates a new note, then updates the navigation state so that the `EditNoteView` is displayed for the new note.
     func createNote() {
         let note = Note(id: UUID(), title: "New Note", content: "")
@@ -32,9 +38,18 @@ class NotesViewModel: ObservableObject {
     
     // MARK: - Persistence
     // Add your code here
+    func save() throws {
+        let data = try JSONEncoder().encode(notes)
+        try data.write(to: notesFile)
     
+    }
     
-    
+    func load() throws {
+        guard FileManager.default.isReadableFile(atPath: notesFile.path) else { return }
+        
+        let data = try Data(contentsOf: notesFile)
+        notes = try JSONDecoder().decode([Note].self, from: data)
+    }
     
     
 }
